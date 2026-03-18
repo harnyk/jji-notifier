@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.env
+offers.db
+terraform/terraform.tfvars
+terraform/.terraform/
+terraform/.terraform.lock.hcl
