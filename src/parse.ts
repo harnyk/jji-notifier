@@ -71,7 +71,7 @@ export function formatSalary(ranges: SalaryRange[]): string {
       const gross = r.gross ? "gross" : "net";
       return `${lo}–${hi} ${r.currency}/${r.unit} ${r.type} (${gross})`;
     })
-    .join(" | ");
+    .join("\n");
 }
 
 export function printOffer(o: ParsedOffer, index: number): void {

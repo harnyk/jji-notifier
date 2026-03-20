@@ -1,3 +1,4 @@
+import { DateTime } from "luxon";
 import type { ParsedOffer } from "./parse.js";
 import { formatSalary } from "./parse.js";
 
@@ -35,6 +36,9 @@ function formatOffer(offer: ParsedOffer): string {
   const promoted = offer.isPromoted ? " ★" : "";
   const skills = offer.requiredSkills.length ? offer.requiredSkills.join(", ") : "—";
   const age = Math.round((Date.now() - offer.publishedAt.getTime()) / 3_600_000);
+  const dt = DateTime.fromJSDate(offer.publishedAt).setZone("Europe/Warsaw");
+  const date = `${dt.toFormat("yyyy-MM-dd HH:mm")} ${dt.toFormat("ZZZZ")}`;
+
   const langs = offer.languages.length
     ? offer.languages.map(formatLanguage).join(", ")
     : null;
@@ -42,10 +46,11 @@ function formatOffer(offer: ParsedOffer): string {
   return [
     `<b>${offer.title}</b>${promoted} @ ${offer.company}`,
     `📍 ${offer.city} · ${offer.workplaceType}`,
-    `💰 ${formatSalary(offer.salary)}`,
+    offer.salary.length ? `\n${formatSalary(offer.salary)}` : null,
     `🛠 ${skills}`,
     langs ? `🌐 ${langs}` : null,
-    `🕐 ${age}h ago · <a href="${offer.url}">view</a>`,
+    `🕐 ${date} (${age}h ago)`,
+    `<a href="${offer.url}">View Full Description</a>`,
   ]
     .filter(Boolean)
     .join("\n");
