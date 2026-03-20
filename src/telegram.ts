@@ -46,10 +46,12 @@ function formatOffer(offer: ParsedOffer): string {
   return [
     `<b>${offer.title}</b>${promoted} @ ${offer.company}`,
     `📍 ${offer.city} · ${offer.workplaceType}`,
-    offer.salary.length ? `\n${formatSalary(offer.salary)}` : null,
+    offer.salary.length ? `\n${formatSalary(offer.salary)}\n` : null,
     `🛠 ${skills}`,
     langs ? `🌐 ${langs}` : null,
+    '',
     `🕐 ${date} (${age}h ago)`,
+    '',
     `<a href="${offer.url}">View Full Description</a>`,
   ]
     .filter(Boolean)
