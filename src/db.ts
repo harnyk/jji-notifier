@@ -1,5 +1,5 @@
 import mongoose, { Schema } from "mongoose";
-import type { Offer } from "./types.js";
+import type { Offer, SearchQuery } from "./types.js";
 
 const offerSchema = new Schema(
   {
@@ -8,6 +8,7 @@ const offerSchema = new Schema(
     company:     { type: String, required: true },
     publishedAt: { type: Date,   required: true },
     payload:     { type: Schema.Types.Mixed, required: true },
+    notifiedAt:  { type: Date,   default: null },
   },
   { timestamps: { createdAt: "seenAt", updatedAt: false } },
 );
@@ -24,8 +25,20 @@ const outboxSchema = new Schema(
   { collection: "event_outbox_new_offer", timestamps: false },
 );
 
+const querySchema = new Schema(
+  {
+    label:          { type: String, required: true },
+    config:         { type: Schema.Types.Mixed, required: true },
+    isBootstrapped: { type: Boolean, default: false },
+    isActive:       { type: Boolean, default: false },
+    isArchived:     { type: Boolean, default: false },
+  },
+  { timestamps: { createdAt: true, updatedAt: false } },
+);
+
 export const OfferModel = mongoose.model("Offer", offerSchema);
 export const OutboxModel = mongoose.model("EventOutboxNewOffer", outboxSchema);
+export const QueryModel  = mongoose.model<{ label: string; config: SearchQuery; isBootstrapped: boolean; isActive: boolean; isArchived: boolean; createdAt: Date }>("Query", querySchema);
 
 export async function connect() {
   const uri = process.env["MONGO_URI"];
@@ -46,8 +59,19 @@ export async function connectOnce(): Promise<void> {
   await connectionPromise;
 }
 
+/** Mark offers as notified by setting notifiedAt timestamp. */
+export async function markOffersNotified(guids: string[]): Promise<void> {
+  await OfferModel.updateMany(
+    { guid: { $in: guids } },
+    { $set: { notifiedAt: new Date() } },
+  );
+}
+
 /** Insert new offers + emit one outbox event per new offer, atomically. */
-export async function upsertOffers(offers: Offer[]): Promise<Offer[]> {
+export async function upsertOffers(
+  offers: Offer[],
+  opts: { skipNotifications?: boolean } = {},
+): Promise<Offer[]> {
   const newOffers: Offer[] = [];
   const session = await mongoose.startSession();
 
@@ -69,17 +93,19 @@ export async function upsertOffers(offers: Offer[]): Promise<Offer[]> {
         );
 
         if (result.upsertedCount > 0) {
-          await OutboxModel.create(
-            [{
-              guid:        offer.guid,
-              slug:        offer.slug,
-              company:     offer.companyName,
-              publishedAt: new Date(offer.publishedAt),
-              payload:     offer,
-              createdAt:   new Date(),
-            }],
-            { session },
-          );
+          if (!opts.skipNotifications) {
+            await OutboxModel.create(
+              [{
+                guid:        offer.guid,
+                slug:        offer.slug,
+                company:     offer.companyName,
+                publishedAt: new Date(offer.publishedAt),
+                payload:     offer,
+                createdAt:   new Date(),
+              }],
+              { session },
+            );
+          }
           newOffers.push(offer);
         }
       }

@@ -1,0 +1,23 @@
+{
+  "name": "jji-admin",
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently \"tsx watch --env-file ../.env server.ts\" \"vite\""
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.13.7",
+    "hono": "^4.7.4"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "concurrently": "^9.1.2",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vite": "^6.3.1"
+  }
+}

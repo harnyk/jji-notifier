@@ -1,24 +1,28 @@
 import { fetchOffers } from "./fetch.js";
 import { parseOffer, printOffer } from "./parse.js";
-import { connectOnce, upsertOffers } from "./db.js";
+import { connectOnce, QueryModel, upsertOffers } from "./db.js";
 import { recordFetchMetrics } from "./metrics.js";
 import { log } from "./logger.js";
-import { QUERY } from "./query.js";
 
 export const handler = async (): Promise<void> => {
   log.info("connecting to mongodb");
   await connectOnce();
-  log.info("connected, fetching offers");
+  log.info("connected, loading queries");
 
-  const t0 = Date.now();
-  const api = await fetchOffers(QUERY);
-  const durationMs = Date.now() - t0;
-  log.info({ fetched: api.data.length, durationMs }, "fetch complete, upserting");
+  const queries = await QueryModel.find({ isBootstrapped: true, isActive: true, isArchived: { $ne: true } });
+  log.info({ count: queries.length }, "active queries found");
 
-  const newOffers = await upsertOffers(api.data);
-  log.info({ fetched: api.data.length, new: newOffers.length }, "upsert complete");
+  for (const query of queries) {
+    const t0 = Date.now();
+    const api = await fetchOffers(query.config);
+    const durationMs = Date.now() - t0;
+    log.info({ label: query.label, fetched: api.data.length, durationMs }, "fetch complete, upserting");
 
-  newOffers.map(parseOffer).forEach(printOffer);
+    const newOffers = await upsertOffers(api.data);
+    log.info({ label: query.label, fetched: api.data.length, new: newOffers.length }, "upsert complete");
 
-  await recordFetchMetrics({ fetched: api.data.length, newOffers: newOffers.length, durationMs });
+    newOffers.map(parseOffer).forEach(printOffer);
+
+    await recordFetchMetrics({ fetched: api.data.length, newOffers: newOffers.length, durationMs });
+  }
 };

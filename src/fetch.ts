@@ -18,6 +18,9 @@ export function buildUrl(query: SearchQuery): string {
   if (query.remoteWorkOptions?.length) {
     for (const r of query.remoteWorkOptions) params.append("remoteWorkOptions", r);
   }
+  if (query.workingTimes?.length) {
+    for (const w of query.workingTimes) params.append("workingTimes", w);
+  }
   if (query.currency) params.set("currency", query.currency);
   if (query.experienceLevels?.length) {
     for (const e of query.experienceLevels) params.append("experienceLevels", e);

@@ -79,6 +79,7 @@ export interface SearchQuery {
   experienceLevels?: string[];
   employmentTypes?: string[];
   remoteWorkOptions?: string[];
+  workingTimes?: string[];
   currency?: string;
   keywords?: string;
   keywordType?: "any" | "all";
