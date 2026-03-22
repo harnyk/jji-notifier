@@ -46,6 +46,7 @@ const DEFAULT_CONFIG: SearchQuery = {
 };
 
 interface Props {
+  initialConfig?: SearchQuery;
   onCreated: () => void;
   onCancel: () => void;
 }
@@ -81,9 +82,10 @@ function CheckboxGroup({ label, options, value, onChange }: CheckboxGroupProps) 
   );
 }
 
-export default function QueryForm({ onCreated, onCancel }: Props) {
-  const [config, setConfig] = useState<SearchQuery>(DEFAULT_CONFIG);
-  const [label, setLabel] = useState(() => generateLabel(DEFAULT_CONFIG));
+export default function QueryForm({ initialConfig, onCreated, onCancel }: Props) {
+  const init = initialConfig ?? DEFAULT_CONFIG;
+  const [config, setConfig] = useState<SearchQuery>(init);
+  const [label, setLabel] = useState(() => generateLabel(init));
   const [labelManual, setLabelManual] = useState(false);
   const [preview, setPreview] = useState<Offer[] | null>(null);
   const [previewTotal, setPreviewTotal] = useState(0);

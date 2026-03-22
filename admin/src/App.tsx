@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import type { QueryDoc } from "./types.js";
+import type { QueryDoc, SearchQuery } from "./types.js";
 import { getQueries, archiveQuery, setQueryActive } from "./api.js";
 import QueryList from "./components/QueryList.js";
 import QueryForm from "./components/QueryForm.js";
@@ -11,6 +11,7 @@ export default function App() {
   const [queries, setQueries] = useState<QueryDoc[]>([]);
   const [view, setView] = useState<View>("empty");
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [cloneSource, setCloneSource] = useState<SearchQuery | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -39,6 +40,12 @@ export default function App() {
     setView("detail");
   };
 
+  const handleClone = (query: QueryDoc) => {
+    setCloneSource(query.config);
+    setSelectedId(null);
+    setView("new");
+  };
+
   const handleToggleActive = async (id: string, isActive: boolean) => {
     await setQueryActive(id, isActive);
     await loadQueries();
@@ -54,14 +61,19 @@ export default function App() {
   };
 
   const handleCreated = async () => {
+    setCloneSource(null);
     const data = await loadQueries();
-    // Select the newly created query (first in list, sorted by createdAt desc)
     if (data && data[0]) {
       setSelectedId(data[0]._id);
       setView("detail");
     } else {
       setView("empty");
     }
+  };
+
+  const handleCancelNew = () => {
+    setCloneSource(null);
+    setView(selectedId ? "detail" : "empty");
   };
 
   return (
@@ -76,7 +88,7 @@ export default function App() {
         <aside className="sidebar">
           <div className="sidebar-header">
             <span className="sidebar-title">Search Queries</span>
-            <button className="btn-primary" onClick={() => { setSelectedId(null); setView("new"); }}>
+            <button className="btn-primary" onClick={() => { setCloneSource(null); setSelectedId(null); setView("new"); }}>
               Create query
             </button>
           </div>
@@ -95,13 +107,18 @@ export default function App() {
 
         <main className="content">
           {view === "new" && (
-            <QueryForm onCreated={handleCreated} onCancel={() => setView(selectedId ? "detail" : "empty")} />
+            <QueryForm
+              initialConfig={cloneSource ?? undefined}
+              onCreated={handleCreated}
+              onCancel={handleCancelNew}
+            />
           )}
           {view === "detail" && selectedQuery && (
             <QueryDetail
               query={selectedQuery}
               onToggleActive={handleToggleActive}
               onArchive={handleArchive}
+              onClone={handleClone}
             />
           )}
           {view === "empty" && (

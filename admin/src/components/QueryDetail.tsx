@@ -15,6 +15,7 @@ interface Props {
   query: QueryDoc;
   onToggleActive: (id: string, isActive: boolean) => void;
   onArchive: (id: string) => void;
+  onClone: (query: QueryDoc) => void;
 }
 
 function Tags({ values, all, abbrev }: { values: string[]; all: string[]; abbrev?: Record<string, string> }) {
@@ -38,7 +39,7 @@ const ALL_EMPLOYMENT    = ["b2b","permanent","mandate_contract","specific_task_c
 const ALL_REMOTE        = ["remote","hybrid","office"];
 const ALL_WORKING_TIME  = ["full_time","part_time","freelance","internship","practice_internship"];
 
-export default function QueryDetail({ query, onToggleActive, onArchive }: Props) {
+export default function QueryDetail({ query, onToggleActive, onArchive, onClone }: Props) {
   const [preview, setPreview] = useState<Offer[] | null>(null);
   const [total, setTotal]     = useState(0);
   const [loading, setLoading] = useState(false);
@@ -129,22 +130,27 @@ export default function QueryDetail({ query, onToggleActive, onArchive }: Props)
           </div>
         </div>
 
-        {!query.isArchived && query.isBootstrapped && (
-          <div className="form-footer">
-            <button
-              className={`btn-primary ${query.isActive ? "btn-danger" : ""}`}
-              onClick={() => onToggleActive(query._id, !query.isActive)}
-            >
-              {query.isActive ? "Deactivate" : "Activate"}
-            </button>
-            <button
-              className="btn-secondary"
-              onClick={() => { if (confirm(`Archive "${query.label}"?`)) onArchive(query._id); }}
-            >
-              Archive
-            </button>
-          </div>
-        )}
+        <div className="form-footer">
+          {!query.isArchived && query.isBootstrapped && (
+            <>
+              <button
+                className={`btn-primary ${query.isActive ? "btn-danger" : ""}`}
+                onClick={() => onToggleActive(query._id, !query.isActive)}
+              >
+                {query.isActive ? "Deactivate" : "Activate"}
+              </button>
+              <button
+                className="btn-secondary"
+                onClick={() => { if (confirm(`Archive "${query.label}"?`)) onArchive(query._id); }}
+              >
+                Archive
+              </button>
+            </>
+          )}
+          <button className="btn-secondary" onClick={() => onClone(query)}>
+            Clone
+          </button>
+        </div>
       </div>
 
       {/* Right: preview */}
