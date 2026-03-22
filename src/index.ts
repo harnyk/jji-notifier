@@ -7,10 +7,17 @@ import { log } from "./logger.js";
 export const handler = async (): Promise<void> => {
   log.info("connecting to mongodb");
   await connectOnce();
-  log.info("connected, loading queries");
 
   const queries = await QueryModel.find({ isBootstrapped: true, isActive: true, isArchived: { $ne: true } });
   log.info({ count: queries.length }, "active queries found");
+
+  if (queries.length === 0) {
+    log.info("no active queries, exiting");
+    return;
+  }
+
+  let totalFetched = 0;
+  let totalNew = 0;
 
   for (const query of queries) {
     const t0 = Date.now();
@@ -19,10 +26,23 @@ export const handler = async (): Promise<void> => {
     log.info({ label: query.label, fetched: api.data.length, durationMs }, "fetch complete, upserting");
 
     const newOffers = await upsertOffers(api.data);
-    log.info({ label: query.label, fetched: api.data.length, new: newOffers.length }, "upsert complete");
+    log.info(
+      {
+        label: query.label,
+        fetched: api.data.length,
+        new: newOffers.length,
+        newOffers: newOffers.map((o) => ({ guid: o.guid, company: o.companyName, title: o.title })),
+      },
+      "upsert complete",
+    );
 
     newOffers.map(parseOffer).forEach(printOffer);
 
+    totalFetched += api.data.length;
+    totalNew += newOffers.length;
+
     await recordFetchMetrics({ fetched: api.data.length, newOffers: newOffers.length, durationMs });
   }
+
+  log.info({ queries: queries.length, totalFetched, totalNew }, "run complete");
 };

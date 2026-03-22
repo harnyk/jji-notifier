@@ -8,21 +8,20 @@ import { log } from "./logger.js";
 const BATCH_SIZE = 10;
 
 export const handler = async (): Promise<void> => {
-  log.info("connecting to mongodb");
   await connectOnce();
-  log.info("connected, querying outbox");
 
   const events = await OutboxModel.find(
     {},
     null,
     { sort: { createdAt: -1 }, limit: BATCH_SIZE },
   ).lean();
-  log.info({ pending: events.length }, "outbox queried");
 
   if (events.length === 0) {
-    log.info("no pending events");
+    log.info("outbox empty");
     return;
   }
+
+  log.info({ pending: events.length }, "outbox has pending events");
 
   // Guard: skip any offers already notified (e.g. duplicate outbox entries)
   const guids = events.map((e) => e.guid);
@@ -35,13 +34,17 @@ export const handler = async (): Promise<void> => {
   }
 
   if (pending.length === 0) {
-    const ids = events.map((e) => e._id);
-    await OutboxModel.deleteMany({ _id: { $in: ids } });
+    await OutboxModel.deleteMany({ _id: { $in: events.map((e) => e._id) } });
+    log.info("all outbox events were already notified, cleaned up");
     return;
   }
 
+  log.info(
+    { count: pending.length, offers: pending.map((e) => ({ guid: e.guid, company: e.company, slug: e.slug })) },
+    "sending telegram batch",
+  );
+
   const offers = pending.map((e) => parseOffer(e.payload as Offer));
-  log.info({ count: offers.length }, "sending telegram batch");
   await notifyBatch(offers);
 
   const ids          = pending.map((e) => e._id);
@@ -51,6 +54,6 @@ export const handler = async (): Promise<void> => {
     markOffersNotified(pendingGuids),
   ]);
 
-  log.info({ notified: events.length }, "batch sent");
-  await recordNotifyMetrics(events.length);
+  log.info({ notified: pending.length }, "batch sent and marked");
+  await recordNotifyMetrics(pending.length);
 };
