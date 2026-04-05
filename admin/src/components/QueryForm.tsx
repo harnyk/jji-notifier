@@ -285,7 +285,7 @@ export default function QueryForm({ initialConfig, onCreated, onCancel }: Props)
                       type="text"
                       placeholder={opt?.placeholder ?? ""}
                       value={entry.value.join(", ")}
-                      onChange={(e) => updateEntry({ ...entry, value: e.target.value.split(",").map((s) => s.trim()).filter(Boolean) })}
+                      onChange={(e) => updateEntry({ ...entry, value: e.target.value.split(",").map((s) => s.trim().toLowerCase()).filter(Boolean) })}
                     />
                   </div>
                   <button className="btn-ghost" onClick={removeEntry} title="Remove">✕</button>
