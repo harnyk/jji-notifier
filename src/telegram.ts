@@ -44,6 +44,7 @@ function formatOffer(offer: ParsedOffer): string {
     : null;
 
   return [
+    offer.queryLabel ? `🔍 <i>${offer.queryLabel}</i>` : null,
     `<b>${offer.title}</b>${promoted} @ ${offer.company}`,
     `📍 ${offer.city} · ${offer.workplaceType}`,
     offer.salary.length ? `\n${formatSalary(offer.salary)}\n` : null,

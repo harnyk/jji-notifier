@@ -27,6 +27,7 @@ export interface ParsedOffer {
   isPromoted: boolean;
   isSuperOffer: boolean;
   applyMethod: string;
+  queryLabel: string | undefined;
 }
 
 function parseSalary(types: EmploymentType[]): SalaryRange[] {
@@ -40,7 +41,7 @@ function parseSalary(types: EmploymentType[]): SalaryRange[] {
   }));
 }
 
-export function parseOffer(raw: Offer): ParsedOffer {
+export function parseOffer(raw: Offer, queryLabel?: string): ParsedOffer {
   return {
     guid: raw.guid,
     slug: raw.slug,
@@ -59,6 +60,7 @@ export function parseOffer(raw: Offer): ParsedOffer {
     isPromoted: raw.isPromoted,
     isSuperOffer: raw.isSuperOffer,
     applyMethod: raw.applyMethod,
+    queryLabel,
   };
 }
 

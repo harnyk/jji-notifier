@@ -20,6 +20,8 @@ const outboxSchema = new Schema(
     company:       { type: String, required: true },
     publishedAt:   { type: Date,   required: true },
     payload:       { type: Schema.Types.Mixed, required: true },
+    queryId:       { type: String, default: null },
+    queryLabel:    { type: String, default: null },
     createdAt:     { type: Date,   required: true, default: Date.now, expires: 2 * 24 * 60 * 60 },
   },
   { collection: "event_outbox_new_offer", timestamps: false },
@@ -70,7 +72,7 @@ export async function markOffersNotified(guids: string[]): Promise<void> {
 /** Insert new offers + emit one outbox event per new offer, atomically. */
 export async function upsertOffers(
   offers: Offer[],
-  opts: { skipNotifications?: boolean } = {},
+  opts: { skipNotifications?: boolean; queryId?: string; queryLabel?: string } = {},
 ): Promise<Offer[]> {
   const newOffers: Offer[] = [];
   const session = await mongoose.startSession();
@@ -101,6 +103,8 @@ export async function upsertOffers(
                 company:     offer.companyName,
                 publishedAt: new Date(offer.publishedAt),
                 payload:     offer,
+                queryId:     opts.queryId ?? null,
+                queryLabel:  opts.queryLabel ?? null,
                 createdAt:   new Date(),
               }],
               { session },

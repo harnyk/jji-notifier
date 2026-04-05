@@ -27,7 +27,7 @@ export const handler = async (): Promise<void> => {
     const filtered = applyPostFilters(api.data, query.config.postFilters ?? []);
     log.info({ label: query.label, fetched: api.data.length, afterFilter: filtered.length, durationMs }, "fetch complete, upserting");
 
-    const newOffers = await upsertOffers(filtered);
+    const newOffers = await upsertOffers(filtered, { queryId: query._id.toString(), queryLabel: query.label });
     log.info(
       {
         label: query.label,
@@ -38,7 +38,7 @@ export const handler = async (): Promise<void> => {
       "upsert complete",
     );
 
-    newOffers.map(parseOffer).forEach(printOffer);
+    newOffers.map((o) => parseOffer(o)).forEach(printOffer);
 
     totalFetched += api.data.length;
     totalNew += newOffers.length;

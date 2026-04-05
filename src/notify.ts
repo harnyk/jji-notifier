@@ -44,7 +44,7 @@ export const handler = async (): Promise<void> => {
     "sending telegram batch",
   );
 
-  const offers = pending.map((e) => parseOffer(e.payload as Offer));
+  const offers = pending.map((e) => parseOffer(e.payload as Offer, e.queryLabel ?? undefined));
   await notifyBatch(offers);
 
   const ids          = pending.map((e) => e._id);
