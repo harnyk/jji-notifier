@@ -60,9 +60,9 @@ resource "aws_cloudwatch_dashboard" "main" {
         properties = {
           title  = "Notifications sent"
           region = var.aws_region
-          view   = "timeSeries"
+          view   = "bar"
           stat   = "Sum"
-          period = 60
+          period = 900
           metrics = [
             ["jji", "notifications_sent", { label = "Sent", color = "#ff7f0e" }],
           ]
@@ -109,6 +109,24 @@ resource "aws_cloudwatch_dashboard" "main" {
       },
     ]
   })
+}
+
+resource "aws_cloudwatch_metric_alarm" "notify_errors" {
+  alarm_name          = "${local.project}-notify-errors"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = 1
+  metric_name         = "Errors"
+  namespace           = "AWS/Lambda"
+  period              = 900
+  statistic           = "Sum"
+  threshold           = 2
+  treat_missing_data  = "notBreaching"
+
+  dimensions = {
+    FunctionName = aws_lambda_function.notify.function_name
+  }
+
+  tags = local.common_tags
 }
 
 resource "aws_cloudwatch_metric_alarm" "fetch_errors" {
