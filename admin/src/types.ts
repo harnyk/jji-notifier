@@ -46,5 +46,6 @@ export interface Offer {
   isPromoted: boolean;
   employmentTypes: EmploymentType[];
   requiredSkills: Array<{ name: string; level: number }>;
+  languages: Array<{ code: string; level: string }>;
   category: { key: string };
 }

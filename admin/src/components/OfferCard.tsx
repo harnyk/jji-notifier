@@ -37,6 +37,15 @@ export default function OfferCard({ offer }: Props) {
         <span>{offer.workplaceType}</span>
       </div>
       <div className="offer-salary">{formatSalary(offer)}</div>
+      <div className="offer-meta">
+        <span className="muted">cat:</span> {offer.category.key}
+        {offer.languages?.length > 0 && (
+          <>
+            <span className="separator">·</span>
+            <span className="muted">lang:</span> {offer.languages.map((l) => `${l.code.toUpperCase()} ${l.level}`).join(", ")}
+          </>
+        )}
+      </div>
       {offer.requiredSkills.length > 0 && (
         <div className="offer-skills muted">
           {offer.requiredSkills.map((s) => s.name).join(", ")}
