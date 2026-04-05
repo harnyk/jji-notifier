@@ -44,6 +44,17 @@ app.patch("/api/queries/:id/active", async (c) => {
   return c.json(query);
 });
 
+app.patch("/api/queries/:id/label", async (c) => {
+  const { label } = await c.req.json<{ label: string }>();
+  const query = await QueryModel.findByIdAndUpdate(
+    c.req.param("id"),
+    { label },
+    { new: true },
+  ).lean();
+  if (!query) return c.json({ error: "Not found" }, 404);
+  return c.json(query);
+});
+
 app.patch("/api/queries/:id/archive", async (c) => {
   const query = await QueryModel.findByIdAndUpdate(
     c.req.param("id"),

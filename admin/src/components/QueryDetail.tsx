@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import type { QueryDoc, Offer } from "../types.js";
 import { previewQuery } from "../api.js";
 import OfferCard from "./OfferCard.js";
@@ -16,6 +16,7 @@ interface Props {
   onToggleActive: (id: string, isActive: boolean) => void;
   onArchive: (id: string) => void;
   onClone: (query: QueryDoc) => void;
+  onRename: (id: string, label: string) => void;
 }
 
 function Tags({ values, all, abbrev }: { values: string[]; all: string[]; abbrev?: Record<string, string> }) {
@@ -44,11 +45,14 @@ const ALL_EMPLOYMENT    = ["b2b","permanent","mandate_contract","specific_task_c
 const ALL_REMOTE        = ["remote","hybrid","office"];
 const ALL_WORKING_TIME  = ["full_time","part_time","freelance","internship","practice_internship"];
 
-export default function QueryDetail({ query, onToggleActive, onArchive, onClone }: Props) {
-  const [preview, setPreview] = useState<Offer[] | null>(null);
-  const [total, setTotal]     = useState(0);
-  const [loading, setLoading] = useState(false);
-  const [error, setError]     = useState<string | null>(null);
+export default function QueryDetail({ query, onToggleActive, onArchive, onClone, onRename }: Props) {
+  const [preview, setPreview]       = useState<Offer[] | null>(null);
+  const [total, setTotal]           = useState(0);
+  const [loading, setLoading]       = useState(false);
+  const [error, setError]           = useState<string | null>(null);
+  const [editingLabel, setEditingLabel] = useState(false);
+  const [labelDraft, setLabelDraft] = useState("");
+  const labelInputRef               = useRef<HTMLInputElement>(null);
 
   // Load preview automatically when query changes
   useEffect(() => {
@@ -77,7 +81,37 @@ export default function QueryDetail({ query, onToggleActive, onArchive, onClone 
       <div className="form-panel">
         <div className="form-header">
           <div className="detail-title">
-            <h2>{query.label}</h2>
+            {editingLabel ? (
+              <input
+                ref={labelInputRef}
+                className="label-input"
+                value={labelDraft}
+                onChange={(e) => setLabelDraft(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    const trimmed = labelDraft.trim();
+                    if (trimmed && trimmed !== query.label) onRename(query._id, trimmed);
+                    setEditingLabel(false);
+                  } else if (e.key === "Escape") {
+                    setEditingLabel(false);
+                  }
+                }}
+                onBlur={() => {
+                  const trimmed = labelDraft.trim();
+                  if (trimmed && trimmed !== query.label) onRename(query._id, trimmed);
+                  setEditingLabel(false);
+                }}
+                autoFocus
+              />
+            ) : (
+              <h2
+                className="label-editable"
+                title="Click to rename"
+                onClick={() => { setLabelDraft(query.label); setEditingLabel(true); }}
+              >
+                {query.label}
+              </h2>
+            )}
             {statusBadge}
           </div>
         </div>

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import type { QueryDoc, SearchQuery } from "./types.js";
-import { getQueries, archiveQuery, setQueryActive } from "./api.js";
+import { getQueries, archiveQuery, setQueryActive, renameQuery } from "./api.js";
 import QueryList from "./components/QueryList.js";
 import QueryForm from "./components/QueryForm.js";
 import QueryDetail from "./components/QueryDetail.js";
@@ -48,6 +48,11 @@ export default function App() {
 
   const handleToggleActive = async (id: string, isActive: boolean) => {
     await setQueryActive(id, isActive);
+    await loadQueries();
+  };
+
+  const handleRename = async (id: string, label: string) => {
+    await renameQuery(id, label);
     await loadQueries();
   };
 
@@ -119,6 +124,7 @@ export default function App() {
               onToggleActive={handleToggleActive}
               onArchive={handleArchive}
               onClone={handleClone}
+              onRename={handleRename}
             />
           )}
           {view === "empty" && (

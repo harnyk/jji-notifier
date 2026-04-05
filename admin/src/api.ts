@@ -32,6 +32,16 @@ export async function archiveQuery(id: string): Promise<QueryDoc> {
   return res.json();
 }
 
+export async function renameQuery(id: string, label: string): Promise<QueryDoc> {
+  const res = await fetch(`/api/queries/${id}/label`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ label }),
+  });
+  if (!res.ok) throw new Error("Failed to rename query");
+  return res.json();
+}
+
 export async function previewQuery(config: SearchQuery): Promise<{ offers: Offer[]; total: number }> {
   const res = await fetch("/api/queries/preview", {
     method: "POST",
