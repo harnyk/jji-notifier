@@ -2,6 +2,7 @@ import { serve } from "@hono/node-server";
 import { Hono } from "hono";
 import { connectOnce, QueryModel, upsertOffers } from "../src/db.js";
 import { fetchOffers } from "../src/fetch.js";
+import { applyPostFilters } from "../src/postFilters.js";
 import type { SearchQuery } from "../src/types.js";
 
 const app = new Hono();
@@ -24,7 +25,7 @@ app.post("/api/queries", async (c) => {
 
   // Bootstrap: fetch and upsert without emitting notifications
   const api = await fetchOffers(config);
-  await upsertOffers(api.data, { skipNotifications: true });
+  await upsertOffers(applyPostFilters(api.data, config.postFilters ?? []), { skipNotifications: true });
 
   query.isBootstrapped = true;
   await query.save();
@@ -56,7 +57,8 @@ app.patch("/api/queries/:id/archive", async (c) => {
 app.post("/api/queries/preview", async (c) => {
   const { config } = await c.req.json<{ config: SearchQuery }>();
   const api = await fetchOffers(config);
-  return c.json({ offers: api.data, total: api.data.length });
+  const offers = applyPostFilters(api.data, config.postFilters ?? []);
+  return c.json({ offers, total: offers.length });
 });
 
 serve({ fetch: app.fetch, port: 8001 }, () => {
