@@ -1,22 +1,16 @@
-import type { Offer } from "./types.js";
+import type { Offer, PostFilterEntry } from "./types.js";
 
-interface PostFilter {
-  id: string;
-  label: string;
-  fn: (offer: Offer) => boolean; // true = keep
+function matchesEntry(offer: Offer, entry: PostFilterEntry): boolean {
+  const vals = entry.value.map((v) => v.toLowerCase());
+  switch (entry.filter) {
+    case "no_languages":
+      return !offer.languages?.some((l) => vals.includes(l.code.toLowerCase()));
+    case "no_skills":
+      return !offer.requiredSkills?.some((s) => vals.includes(s.name.toLowerCase()));
+  }
 }
 
-export const POST_FILTERS: PostFilter[] = [
-  {
-    id: "no_polish",
-    label: "No Polish required",
-    fn: (offer) => !offer.languages?.some((l) => l.code === "pl"),
-  },
-];
-
-export function applyPostFilters(offers: Offer[], filterIds: string[]): Offer[] {
-  if (!filterIds.length) return offers;
-  const active = POST_FILTERS.filter((f) => filterIds.includes(f.id));
-  if (!active.length) return offers;
-  return offers.filter((offer) => active.every((f) => f.fn(offer)));
+export function applyPostFilters(offers: Offer[], filters: PostFilterEntry[]): Offer[] {
+  if (!filters.length) return offers;
+  return offers.filter((offer) => filters.every((entry) => matchesEntry(offer, entry)));
 }

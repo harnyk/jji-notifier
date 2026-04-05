@@ -34,7 +34,8 @@ function Tags({ values, all, abbrev }: { values: string[]; all: string[]; abbrev
 }
 
 const POST_FILTER_LABELS: Record<string, string> = {
-  no_polish: "No Polish required",
+  no_languages: "No languages",
+  no_skills:    "No skills",
 };
 
 const ALL_CATEGORIES    = ["javascript","html","php","ruby","python","java","net","scala","go","c","mobile","data","ai","devops","testing","security","game","architecture","analytics","ux","pm","admin","support","erp","other"];
@@ -136,11 +137,12 @@ export default function QueryDetail({ query, onToggleActive, onArchive, onClone 
           {cfg.postFilters?.length ? (
             <div className="form-section">
               <div className="form-section-title">Post-filters</div>
-              <div className="tag-group">
-                {cfg.postFilters.map((id) => (
-                  <span key={id} className="tag tag-on">{POST_FILTER_LABELS[id] ?? id}</span>
-                ))}
-              </div>
+              {cfg.postFilters.map((entry, i) => (
+                <div key={i} className="field">
+                  <label className="field-label">{POST_FILTER_LABELS[entry.filter] ?? entry.filter}</label>
+                  <span className="detail-value">{entry.value.join(", ") || "—"}</span>
+                </div>
+              ))}
             </div>
           ) : null}
         </div>

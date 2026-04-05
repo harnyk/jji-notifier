@@ -74,6 +74,11 @@ export interface RunResult {
   totalCount: number;
 }
 
+export interface PostFilterEntry {
+  filter: "no_languages" | "no_skills";
+  value: string[];
+}
+
 export interface SearchQuery {
   categories?: string[];
   experienceLevels?: string[];
@@ -82,7 +87,7 @@ export interface SearchQuery {
   workingTimes?: string[];
   currency?: string;
   keywords?: string;
-  postFilters?: string[];
+  postFilters?: PostFilterEntry[];
   isPromoted?: boolean;
   orderBy?: "descending" | "ascending";
   sortBy?: string;

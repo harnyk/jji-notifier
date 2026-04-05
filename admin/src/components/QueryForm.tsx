@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { SearchQuery, Offer } from "../types.js";
+import type { SearchQuery, Offer, PostFilterEntry } from "../types.js";
 import { createQuery, previewQuery } from "../api.js";
 import OfferCard from "./OfferCard.js";
 
@@ -14,8 +14,9 @@ const REMOTE_OPTIONS    = ["remote", "hybrid", "office"];
 const WORKING_TIME      = ["full_time", "part_time", "freelance", "internship", "practice_internship"];
 const CURRENCIES = ["pln", "eur", "usd", "gbp", "chf"];
 
-const POST_FILTERS: { id: string; label: string }[] = [
-  { id: "no_polish", label: "No Polish required" },
+const POST_FILTER_OPTIONS: { filter: PostFilterEntry["filter"]; label: string; placeholder: string }[] = [
+  { filter: "no_languages", label: "No languages",  placeholder: "e.g. pl, de" },
+  { filter: "no_skills",    label: "No skills",     placeholder: "e.g. Python, PHP" },
 ];
 
 const CATEGORY_ABBREV: Record<string, string> = {
@@ -254,13 +255,49 @@ export default function QueryForm({ initialConfig, onCreated, onCancel }: Props)
 
           <div className="form-section">
             <div className="form-section-title">Post-filters</div>
-            <CheckboxGroup
-              label="Apply after fetching"
-              options={POST_FILTERS.map((f) => f.id)}
-              labels={Object.fromEntries(POST_FILTERS.map((f) => [f.id, f.label]))}
-              value={config.postFilters ?? []}
-              onChange={(v) => set("postFilters", v.length ? v : undefined)}
-            />
+            {(config.postFilters ?? []).map((entry, i) => {
+              const opt = POST_FILTER_OPTIONS.find((o) => o.filter === entry.filter);
+              const updateEntry = (next: PostFilterEntry) => {
+                const arr = [...(config.postFilters ?? [])];
+                arr[i] = next;
+                set("postFilters", arr);
+              };
+              const removeEntry = () => {
+                const arr = (config.postFilters ?? []).filter((_, j) => j !== i);
+                set("postFilters", arr.length ? arr : undefined);
+              };
+              return (
+                <div key={i} className="field-row">
+                  <div className="field">
+                    <select
+                      className="input"
+                      value={entry.filter}
+                      onChange={(e) => updateEntry({ filter: e.target.value as PostFilterEntry["filter"], value: [] })}
+                    >
+                      {POST_FILTER_OPTIONS.map((o) => (
+                        <option key={o.filter} value={o.filter}>{o.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="field" style={{ flex: 2 }}>
+                    <input
+                      className="input"
+                      type="text"
+                      placeholder={opt?.placeholder ?? ""}
+                      value={entry.value.join(", ")}
+                      onChange={(e) => updateEntry({ ...entry, value: e.target.value.split(",").map((s) => s.trim()).filter(Boolean) })}
+                    />
+                  </div>
+                  <button className="btn-ghost" onClick={removeEntry} title="Remove">✕</button>
+                </div>
+              );
+            })}
+            <button
+              className="btn-ghost"
+              onClick={() => set("postFilters", [...(config.postFilters ?? []), { filter: "no_languages", value: [] }])}
+            >
+              + Add post-filter
+            </button>
           </div>
         </div>{/* /form-body */}
 
