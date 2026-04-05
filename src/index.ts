@@ -1,6 +1,7 @@
 import { fetchOffers } from "./fetch.js";
 import { parseOffer, printOffer } from "./parse.js";
 import { connectOnce, QueryModel, upsertOffers } from "./db.js";
+import { applyPostFilters } from "./postFilters.js";
 import { recordFetchMetrics } from "./metrics.js";
 import { log } from "./logger.js";
 
@@ -23,9 +24,10 @@ export const handler = async (): Promise<void> => {
     const t0 = Date.now();
     const api = await fetchOffers(query.config);
     const durationMs = Date.now() - t0;
-    log.info({ label: query.label, fetched: api.data.length, durationMs }, "fetch complete, upserting");
+    const filtered = applyPostFilters(api.data, query.config.postFilters ?? []);
+    log.info({ label: query.label, fetched: api.data.length, afterFilter: filtered.length, durationMs }, "fetch complete, upserting");
 
-    const newOffers = await upsertOffers(api.data);
+    const newOffers = await upsertOffers(filtered);
     log.info(
       {
         label: query.label,

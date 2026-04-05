@@ -14,6 +14,10 @@ const REMOTE_OPTIONS    = ["remote", "hybrid", "office"];
 const WORKING_TIME      = ["full_time", "part_time", "freelance", "internship", "practice_internship"];
 const CURRENCIES = ["pln", "eur", "usd", "gbp", "chf"];
 
+const POST_FILTERS: { id: string; label: string }[] = [
+  { id: "no_polish", label: "No Polish required" },
+];
+
 const CATEGORY_ABBREV: Record<string, string> = {
   javascript: "JS", html: "HTML", php: "PHP", ruby: "Ruby", python: "Python",
   java: "Java", net: ".NET", scala: "Scala", go: "Go", c: "C/C++",
@@ -60,9 +64,10 @@ interface CheckboxGroupProps {
   options: string[];
   value: string[];
   onChange: (next: string[]) => void;
+  labels?: Record<string, string>;
 }
 
-function CheckboxGroup({ label, options, value, onChange }: CheckboxGroupProps) {
+function CheckboxGroup({ label, options, value, onChange, labels }: CheckboxGroupProps) {
   return (
     <div className="field">
       <label className="field-label">{label}</label>
@@ -74,7 +79,7 @@ function CheckboxGroup({ label, options, value, onChange }: CheckboxGroupProps) 
               checked={value.includes(opt)}
               onChange={() => onChange(toggleItem(value, opt))}
             />
-            {opt}
+            {labels?.[opt] ?? opt}
           </label>
         ))}
       </div>
@@ -246,6 +251,17 @@ export default function QueryForm({ initialConfig, onCreated, onCancel }: Props)
               />
             </div>
           </div>{/* /form-section Options */}
+
+          <div className="form-section">
+            <div className="form-section-title">Post-filters</div>
+            <CheckboxGroup
+              label="Apply after fetching"
+              options={POST_FILTERS.map((f) => f.id)}
+              labels={Object.fromEntries(POST_FILTERS.map((f) => [f.id, f.label]))}
+              value={config.postFilters ?? []}
+              onChange={(v) => set("postFilters", v.length ? v : undefined)}
+            />
+          </div>
         </div>{/* /form-body */}
 
         <div className="form-footer">

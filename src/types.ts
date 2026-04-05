@@ -82,6 +82,7 @@ export interface SearchQuery {
   workingTimes?: string[];
   currency?: string;
   keywords?: string;
+  postFilters?: string[];
   isPromoted?: boolean;
   orderBy?: "descending" | "ascending";
   sortBy?: string;
