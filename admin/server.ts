@@ -59,6 +59,6 @@ app.post("/api/queries/preview", async (c) => {
   return c.json({ offers: api.data, total: api.data.length });
 });
 
-serve({ fetch: app.fetch, port: 3001 }, () => {
-  console.log("Admin API running on http://localhost:3001");
+serve({ fetch: app.fetch, port: 8001 }, () => {
+  console.log("Admin API running on http://localhost:8001");
 });

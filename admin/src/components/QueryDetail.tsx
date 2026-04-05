@@ -124,7 +124,7 @@ export default function QueryDetail({ query, onToggleActive, onArchive, onClone 
             {cfg.keywords && (
               <div className="field">
                 <label className="field-label">Keywords</label>
-                <span className="detail-value">"{cfg.keywords}" <span className="muted">({cfg.keywordType})</span></span>
+                <span className="detail-value">"{cfg.keywords}"</span>
               </div>
             )}
           </div>

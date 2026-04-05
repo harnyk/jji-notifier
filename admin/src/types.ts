@@ -6,7 +6,6 @@ export interface SearchQuery {
   workingTimes?: string[];
   currency?: string;
   keywords?: string;
-  keywordType?: "any" | "all";
   isPromoted?: boolean;
   orderBy?: "descending" | "ascending";
   sortBy?: string;

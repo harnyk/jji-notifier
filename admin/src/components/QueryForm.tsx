@@ -244,7 +244,7 @@ export default function QueryForm({ initialConfig, onCreated, onCancel }: Props)
                 value={config.keywords ?? ""}
                 onChange={(e) => set("keywords", e.target.value || undefined)}
               />
-                </div>
+            </div>
           </div>{/* /form-section Options */}
         </div>{/* /form-body */}
 

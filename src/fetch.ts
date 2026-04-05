@@ -27,8 +27,10 @@ export function buildUrl(query: SearchQuery): string {
   }
   if (query.orderBy) params.set("orderBy", query.orderBy);
   if (query.sortBy) params.set("sortBy", query.sortBy);
-  if (query.keywords) params.set("keywords", query.keywords);
-  if (query.keywordType) params.set("keywordType", query.keywordType);
+  if (query.keywords) {
+    params.set("keywords", query.keywords);
+    params.set("keywordType", "any");
+  }
   if (query.isPromoted !== undefined) params.set("isPromoted", String(query.isPromoted));
 
   return `${BASE_URL}?${params.toString()}`;
