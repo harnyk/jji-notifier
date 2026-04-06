@@ -63,6 +63,7 @@ resource "aws_cloudwatch_dashboard" "main" {
           view   = "bar"
           stat   = "Sum"
           period = 900
+          setPeriodToTimeRange = false
           metrics = [
             ["jji", "notifications_sent", { label = "Sent", color = "#ff7f0e" }],
           ]
