@@ -17,6 +17,7 @@ export const handler = async (): Promise<void> => {
 
   if (events.length === 0) {
     log.info("outbox empty");
+    await recordNotifyMetrics(0);
     return;
   }
 
@@ -41,6 +42,7 @@ export const handler = async (): Promise<void> => {
       () => OutboxModel.deleteMany({ _id: { $in: events.map((e) => e._id) } }),
     );
     log.info("all outbox events were already notified, cleaned up");
+    await recordNotifyMetrics(0);
     return;
   }
 
