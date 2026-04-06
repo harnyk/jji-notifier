@@ -10,6 +10,7 @@ const shared = {
   platform: "node",
   target: "node22",
   format: "esm",
+  sourcemap: true,
   outExtension: { ".js": ".mjs" },
   external: ["@aws-sdk/*"],
   banner: {
@@ -20,6 +21,6 @@ const shared = {
 await build({ ...shared, entryPoints: ["src/index.ts"], outfile: `${outDir}/fetch.mjs` });
 await build({ ...shared, entryPoints: ["src/notify.ts"], outfile: `${outDir}/notify.mjs` });
 
-execSync(`cd ${outDir} && zip fetch.zip fetch.mjs && zip notify.zip notify.mjs`);
+execSync(`cd ${outDir} && zip fetch.zip fetch.mjs fetch.mjs.map && zip notify.zip notify.mjs notify.mjs.map`);
 
 console.log("Build complete: dist/lambda/fetch.zip, dist/lambda/notify.zip");

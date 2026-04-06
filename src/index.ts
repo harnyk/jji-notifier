@@ -1,6 +1,6 @@
 import { fetchOffers } from "./fetch.js";
 import { parseOffer, printOffer } from "./parse.js";
-import { connectOnce, QueryModel, upsertOffers } from "./db.js";
+import { connectOnce, QueryModel, upsertOffers, withMongoRetry } from "./db.js";
 import { applyPostFilters } from "./postFilters.js";
 import { recordFetchMetrics } from "./metrics.js";
 import { log } from "./logger.js";
@@ -9,7 +9,10 @@ export const handler = async (): Promise<void> => {
   log.info("connecting to mongodb");
   await connectOnce();
 
-  const queries = await QueryModel.find({ isBootstrapped: true, isActive: true, isArchived: { $ne: true } });
+  const queries = await withMongoRetry(
+    "fetch.loadActiveQueries",
+    () => QueryModel.find({ isBootstrapped: true, isActive: true, isArchived: { $ne: true } }),
+  );
   log.info({ count: queries.length }, "active queries found");
 
   if (queries.length === 0) {

@@ -53,6 +53,7 @@ resource "aws_lambda_function" "notify" {
       MONGO_URI        = var.mongo_uri
       TELEGRAM_TOKEN   = var.telegram_token
       TELEGRAM_CHAT_ID = var.telegram_chat_id
+      NODE_OPTIONS     = "--enable-source-maps"
     }
   }
 
