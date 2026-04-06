@@ -45,3 +45,8 @@ variable "log_retention_days" {
   type        = number
   default     = 14
 }
+
+variable "alert_email" {
+  description = "Email address for CloudWatch alarm notifications"
+  type        = string
+}

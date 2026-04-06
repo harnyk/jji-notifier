@@ -111,6 +111,17 @@ resource "aws_cloudwatch_dashboard" "main" {
   })
 }
 
+resource "aws_sns_topic" "alerts" {
+  name = "${local.project}-alerts"
+  tags = local.common_tags
+}
+
+resource "aws_sns_topic_subscription" "email" {
+  topic_arn = aws_sns_topic.alerts.arn
+  protocol  = "email"
+  endpoint  = var.alert_email
+}
+
 resource "aws_cloudwatch_metric_alarm" "notify_errors" {
   alarm_name          = "${local.project}-notify-errors"
   comparison_operator = "GreaterThanThreshold"
@@ -119,14 +130,15 @@ resource "aws_cloudwatch_metric_alarm" "notify_errors" {
   namespace           = "AWS/Lambda"
   period              = 900
   statistic           = "Sum"
-  threshold           = 2
+  threshold           = 1
   treat_missing_data  = "notBreaching"
 
   dimensions = {
     FunctionName = aws_lambda_function.notify.function_name
   }
 
-  tags = local.common_tags
+  alarm_actions = [aws_sns_topic.alerts.arn]
+  tags          = local.common_tags
 }
 
 resource "aws_cloudwatch_metric_alarm" "fetch_errors" {
@@ -137,12 +149,13 @@ resource "aws_cloudwatch_metric_alarm" "fetch_errors" {
   namespace           = "AWS/Lambda"
   period              = 900
   statistic           = "Sum"
-  threshold           = 2
+  threshold           = 1
   treat_missing_data  = "notBreaching"
 
   dimensions = {
     FunctionName = aws_lambda_function.fetch.function_name
   }
 
-  tags = local.common_tags
+  alarm_actions = [aws_sns_topic.alerts.arn]
+  tags          = local.common_tags
 }
