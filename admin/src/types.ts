@@ -1,5 +1,5 @@
 export interface PostFilterEntry {
-  filter: "no_languages" | "no_skills";
+  filter: "no_languages" | "no_skills" | "exclude_title_words";
   value: string[];
 }
 
@@ -9,6 +9,7 @@ export interface SearchQuery {
   employmentTypes?: string[];
   remoteWorkOptions?: string[];
   workingTimes?: string[];
+  withSalary?: boolean;
   currency?: string;
   keywords?: string;
   postFilters?: PostFilterEntry[];
@@ -53,4 +54,5 @@ export interface Offer {
   requiredSkills: Array<{ name: string; level: number }>;
   languages: Array<{ code: string; level: string }>;
   category: { key: string };
+  alreadyFetched?: boolean;
 }

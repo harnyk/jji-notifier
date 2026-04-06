@@ -27,6 +27,7 @@ export default function OfferCard({ offer }: Props) {
         <a href={url} target="_blank" rel="noreferrer" className="offer-title">
           {offer.title}
         </a>
+        {offer.alreadyFetched && <span className="badge fetched">fetched</span>}
         {offer.isPromoted && <span className="badge promoted">promoted</span>}
       </div>
       <div className="offer-meta">

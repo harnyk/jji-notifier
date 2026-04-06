@@ -75,7 +75,7 @@ export interface RunResult {
 }
 
 export interface PostFilterEntry {
-  filter: "no_languages" | "no_skills";
+  filter: "no_languages" | "no_skills" | "exclude_title_words";
   value: string[];
 }
 
@@ -85,6 +85,7 @@ export interface SearchQuery {
   employmentTypes?: string[];
   remoteWorkOptions?: string[];
   workingTimes?: string[];
+  withSalary?: boolean;
   currency?: string;
   keywords?: string;
   postFilters?: PostFilterEntry[];

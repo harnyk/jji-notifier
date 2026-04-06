@@ -25,6 +25,9 @@
   --error:           #d13212;
   --promoted-bg:     #f0f4ff;
   --promoted-text:   #1b2a8b;
+  --fetched-bg:      #ecf7f3;
+  --fetched-text:    #037f5b;
+  --fetched-border:  #2ea597;
   --radius:          2px;
   --sidebar-w:       280px;
   --header-h:        40px;
@@ -222,6 +225,9 @@ body {
 .badge.promoted  { background: var(--promoted-bg); color: var(--promoted-text); border: 1px solid var(--promoted-text); }
 .badge.promoted::before { background: var(--promoted-text); }
 
+.badge.fetched  { background: var(--fetched-bg); color: var(--fetched-text); border: 1px solid var(--fetched-border); }
+.badge.fetched::before { background: var(--fetched-text); }
+
 /* ── Form layout ─────────────────────────────────────────────────────── */
 
 .form-page {
@@ -316,6 +322,33 @@ body {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
+}
+
+.post-filter-item {
+  display: grid;
+  gap: 12px;
+  align-items: start;
+}
+
+.post-filter-item-inline {
+  grid-template-columns: 1fr 2fr auto;
+}
+
+.post-filter-item-stacked {
+  grid-template-columns: 1fr auto;
+}
+
+.post-filter-item-stacked .post-filter-value {
+  grid-column: 1 / -1;
+}
+
+.post-filter-remove {
+  align-self: center;
+}
+
+.post-filter-textarea {
+  min-height: 78px;
+  resize: vertical;
 }
 
 .input {

@@ -6,7 +6,8 @@
   "scripts": {
     "build": "node scripts/build.mjs",
     "typecheck": "tsc --noEmit",
-"admin": "cd admin && pnpm dev"
+    "admin": "cd admin && pnpm dev",
+    "skills:mine": "tsx --env-file .env scripts/mine-skills.ts"
   },
   "keywords": [],
   "author": "",

@@ -37,6 +37,7 @@ function Tags({ values, all, abbrev }: { values: string[]; all: string[]; abbrev
 const POST_FILTER_LABELS: Record<string, string> = {
   no_languages: "No languages",
   no_skills:    "No skills",
+  exclude_title_words: "Exclude title words",
 };
 
 const ALL_CATEGORIES    = ["javascript","html","php","ruby","python","java","net","scala","go","c","mobile","data","ai","devops","testing","security","game","architecture","analytics","ux","pm","admin","support","erp","other"];
@@ -120,6 +121,13 @@ export default function QueryDetail({ query, onToggleActive, onArchive, onClone,
           <div className="form-section">
             <div className="form-section-title">Filters</div>
 
+            {cfg.keywords && (
+              <div className="field">
+                <label className="field-label">Keywords</label>
+                <span className="detail-value">"{cfg.keywords}"</span>
+              </div>
+            )}
+
             <div className="field">
               <label className="field-label">Categories</label>
               <Tags values={cfg.categories ?? []} all={ALL_CATEGORIES} abbrev={CATEGORY_ABBREV} />
@@ -151,6 +159,10 @@ export default function QueryDetail({ query, onToggleActive, onArchive, onClone,
 
             <div className="field-row">
               <div className="field">
+                <label className="field-label">Salary</label>
+                <span className="detail-value">{cfg.withSalary ? "Only offers with salary" : "—"}</span>
+              </div>
+              <div className="field">
                 <label className="field-label">Currency</label>
                 <span className="detail-value">{cfg.currency?.toUpperCase() ?? "—"}</span>
               </div>
@@ -159,13 +171,6 @@ export default function QueryDetail({ query, onToggleActive, onArchive, onClone,
                 <span className="detail-value">{cfg.cityRadius != null ? `${cfg.cityRadius} km` : "—"}</span>
               </div>
             </div>
-
-            {cfg.keywords && (
-              <div className="field">
-                <label className="field-label">Keywords</label>
-                <span className="detail-value">"{cfg.keywords}"</span>
-              </div>
-            )}
           </div>
 
           {cfg.postFilters?.length ? (

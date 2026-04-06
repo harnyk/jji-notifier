@@ -1,8 +1,8 @@
 import { serve } from "@hono/node-server";
 import { Hono } from "hono";
-import { connectOnce, QueryModel, upsertOffers } from "../src/db.js";
+import { connectOnce, OfferModel, QueryModel, upsertOffers } from "../src/db.js";
 import { fetchOffers } from "../src/fetch.js";
-import { applyPostFilters } from "../src/postFilters.js";
+import { applyPostFilters, validatePostFilters } from "../src/postFilters.js";
 import type { SearchQuery } from "../src/types.js";
 
 const app = new Hono();
@@ -20,6 +20,7 @@ app.get("/api/queries", async (c) => {
 
 app.post("/api/queries", async (c) => {
   const { label, config } = await c.req.json<{ label: string; config: SearchQuery }>();
+  validatePostFilters(config.postFilters ?? []);
 
   const query = await QueryModel.create({ label, config, isBootstrapped: false, isArchived: false });
 
@@ -67,9 +68,20 @@ app.patch("/api/queries/:id/archive", async (c) => {
 
 app.post("/api/queries/preview", async (c) => {
   const { config } = await c.req.json<{ config: SearchQuery }>();
+  validatePostFilters(config.postFilters ?? []);
   const api = await fetchOffers(config);
   const offers = applyPostFilters(api.data, config.postFilters ?? []);
-  return c.json({ offers, total: offers.length });
+  const fetchedGuids = new Set(
+    await OfferModel.distinct("guid", { guid: { $in: offers.map((offer) => offer.guid) } }),
+  );
+
+  return c.json({
+    offers: offers.map((offer) => ({
+      ...offer,
+      alreadyFetched: fetchedGuids.has(offer.guid),
+    })),
+    total: offers.length,
+  });
 });
 
 serve({ fetch: app.fetch, port: 8001 }, () => {

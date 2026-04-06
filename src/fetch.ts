@@ -21,6 +21,7 @@ export function buildUrl(query: SearchQuery): string {
   if (query.workingTimes?.length) {
     for (const w of query.workingTimes) params.append("workingTimes", w);
   }
+  if (query.withSalary) params.set("withSalary", "true");
   if (query.currency) params.set("currency", query.currency);
   if (query.experienceLevels?.length) {
     for (const e of query.experienceLevels) params.append("experienceLevels", e);
