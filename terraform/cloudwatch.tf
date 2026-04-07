@@ -29,8 +29,9 @@ resource "aws_cloudwatch_dashboard" "main" {
           stat   = "Sum"
           period = 900
           metrics = [
-            ["jji", "offers_fetched", { label = "Fetched", color = "#1f77b4" }],
-            ["jji", "offers_new",     { label = "New",     color = "#2ca02c" }],
+            ["jji", "offers_fetched",      { label = "Fetched",      color = "#1f77b4" }],
+            ["jji", "offers_filtered_out", { label = "Filtered out", color = "#d62728" }],
+            ["jji", "offers_new",          { label = "New",          color = "#2ca02c" }],
           ]
         }
       },

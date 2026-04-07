@@ -28,6 +28,22 @@ export const handler = async (): Promise<void> => {
     const api = await fetchOffers(query.config);
     const durationMs = Date.now() - t0;
     const filtered = applyPostFilters(api.data, query.config.postFilters ?? []);
+    const blockedByFilters = api.data.filter((o) => !filtered.includes(o));
+    if (blockedByFilters.length > 0) {
+      log.info(
+        {
+          query: query.label,
+          count: blockedByFilters.length,
+          offers: blockedByFilters.map((o) => ({
+            guid: o.guid,
+            title: o.title,
+            company: o.companyName,
+            url: `https://justjoin.it/offers/${o.slug}`,
+          })),
+        },
+        "offers blocked by post-filters",
+      );
+    }
     log.info({ label: query.label, fetched: api.data.length, afterFilter: filtered.length, durationMs }, "fetch complete, upserting");
 
     const newOffers = await upsertOffers(filtered, { queryId: query._id.toString(), queryLabel: query.label });
@@ -46,7 +62,7 @@ export const handler = async (): Promise<void> => {
     totalFetched += api.data.length;
     totalNew += newOffers.length;
 
-    await recordFetchMetrics({ fetched: api.data.length, newOffers: newOffers.length, durationMs });
+    await recordFetchMetrics({ fetched: api.data.length, filteredOut: api.data.length - filtered.length, newOffers: newOffers.length, durationMs });
   }
 
   log.info({ queries: queries.length, totalFetched, totalNew }, "run complete");
