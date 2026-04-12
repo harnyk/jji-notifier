@@ -1,9 +1,11 @@
 import { serve } from "@hono/node-server";
 import { Hono } from "hono";
-import { connectOnce, OfferModel, QueryModel, upsertOffers } from "../src/db.js";
-import { fetchOffers } from "../src/fetch.js";
-import { applyPostFilters, validatePostFilters } from "../src/postFilters.js";
-import type { SearchQuery } from "../src/types.js";
+import { connectOnce } from "../src/infrastructure/db/connection.js";
+import { OfferModel, QueryModel } from "../src/infrastructure/db/models.js";
+import { MongoOfferRepository } from "../src/infrastructure/db/MongoOfferRepository.js";
+import { JjiApiClient } from "../src/infrastructure/api/JjiApiClient.js";
+import { applyPostFilters, validatePostFilters } from "../src/domain/postFilters.js";
+import type { SearchQuery } from "../src/domain/types.js";
 
 const app = new Hono();
 
@@ -25,8 +27,11 @@ app.post("/api/queries", async (c) => {
   const query = await QueryModel.create({ label, config, isBootstrapped: false, isArchived: false });
 
   // Bootstrap: fetch and upsert without emitting notifications
-  const api = await fetchOffers(config);
-  await upsertOffers(applyPostFilters(api.data, config.postFilters ?? []), { skipNotifications: true });
+  const api = await new JjiApiClient().fetchOffers(config);
+  await new MongoOfferRepository().upsertOffers(
+    applyPostFilters(api.data, config.postFilters ?? []),
+    { skipNotifications: true },
+  );
 
   query.isBootstrapped = true;
   await query.save();
@@ -69,7 +74,7 @@ app.patch("/api/queries/:id/archive", async (c) => {
 app.post("/api/queries/preview", async (c) => {
   const { config } = await c.req.json<{ config: SearchQuery }>();
   validatePostFilters(config.postFilters ?? []);
-  const api = await fetchOffers(config);
+  const api = await new JjiApiClient().fetchOffers(config);
   const offers = applyPostFilters(api.data, config.postFilters ?? []);
   const fetchedGuids = new Set(
     await OfferModel.distinct("guid", { guid: { $in: offers.map((offer) => offer.guid) } }),

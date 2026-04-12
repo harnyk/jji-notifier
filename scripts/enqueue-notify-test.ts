@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
-import { connectOnce, OutboxModel } from "../src/db.js";
-import type { EmploymentType, Language, Offer, Skill } from "../src/types.js";
+import { connectOnce } from "../src/infrastructure/db/connection.js";
+import { OutboxModel } from "../src/infrastructure/db/models.js";
+import type { EmploymentType, Language, Offer, Skill } from "../src/domain/types.js";
 
 interface Options {
   title: string;

@@ -18,8 +18,8 @@ const shared = {
   },
 };
 
-await build({ ...shared, entryPoints: ["src/index.ts"], outfile: `${outDir}/fetch.mjs` });
-await build({ ...shared, entryPoints: ["src/notify.ts"], outfile: `${outDir}/notify.mjs` });
+await build({ ...shared, entryPoints: ["src/lambdas/fetch.ts"], outfile: `${outDir}/fetch.mjs` });
+await build({ ...shared, entryPoints: ["src/lambdas/notify.ts"], outfile: `${outDir}/notify.mjs` });
 
 execSync(`cd ${outDir} && zip fetch.zip fetch.mjs fetch.mjs.map && zip notify.zip notify.mjs notify.mjs.map`);
 
