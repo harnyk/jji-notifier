@@ -31,6 +31,8 @@ jobs:
           aws-region: eu-west-1
 
       - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false  # wrapper intercepts stdout; we capture output ourselves via tee
 
       - name: terraform init
         working-directory: terraform
