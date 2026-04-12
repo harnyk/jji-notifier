@@ -8,7 +8,8 @@
     "typecheck": "tsc --noEmit",
     "admin": "cd admin && pnpm dev",
     "skills:mine": "tsx --env-file .env scripts/mine-skills.ts",
-    "notify:test:enqueue": "tsx --env-file .env scripts/enqueue-notify-test.ts"
+    "notify:test:enqueue": "tsx --env-file .env scripts/enqueue-notify-test.ts",
+    "deploy": "gh workflow run deploy.yml --repo harnyk/jji-notifier --ref $(git rev-parse --abbrev-ref HEAD)"
   },
   "keywords": [],
   "author": "",
