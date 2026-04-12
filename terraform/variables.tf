@@ -50,3 +50,13 @@ variable "alert_email" {
   description = "Email address for CloudWatch alarm notifications"
   type        = string
 }
+
+variable "fetch_zip_key" {
+  description = "S3 key of the fetch Lambda zip inside the tfstate bucket (set by deploy script)"
+  type        = string
+}
+
+variable "notify_zip_key" {
+  description = "S3 key of the notify Lambda zip inside the tfstate bucket (set by deploy script)"
+  type        = string
+}

@@ -1,0 +1,70 @@
+name: Deploy
+
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"   # e.g. v1.2.3
+  workflow_dispatch:
+    inputs:
+      git-ref:
+        description: "Branch or tag to deploy (default: the tag/branch that triggered)"
+        required: false
+        default: ""
+
+permissions:
+  id-token: write   # required for OIDC credential exchange
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # workflow_dispatch: use the provided ref; tag push: use the tag
+          ref: ${{ github.event.inputs.git-ref || github.ref }}
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: eu-west-1
+
+      - uses: hashicorp/setup-terraform@v3
+
+      - name: Build Lambda zips
+        run: node scripts/build.mjs
+
+      - name: Upload zips to S3
+        run: |
+          GIT_SHA=$(git rev-parse --short HEAD)
+          BUCKET=jji-notifier-tfstate
+          aws s3 cp dist/lambda/fetch.zip  "s3://${BUCKET}/lambda-zips/fetch-${GIT_SHA}.zip"
+          aws s3 cp dist/lambda/notify.zip "s3://${BUCKET}/lambda-zips/notify-${GIT_SHA}.zip"
+          echo "FETCH_KEY=lambda-zips/fetch-${GIT_SHA}.zip"   >> "$GITHUB_ENV"
+          echo "NOTIFY_KEY=lambda-zips/notify-${GIT_SHA}.zip" >> "$GITHUB_ENV"
+
+      - name: Terraform apply
+        working-directory: terraform
+        run: |
+          terraform init -input=false
+          terraform apply -auto-approve -input=false \
+            -var "fetch_zip_key=$FETCH_KEY" \
+            -var "notify_zip_key=$NOTIFY_KEY"
+        env:
+          TF_VAR_mongo_uri: ${{ secrets.TF_VAR_MONGO_URI }}
+          TF_VAR_telegram_token: ${{ secrets.TF_VAR_TELEGRAM_TOKEN }}
+          TF_VAR_telegram_chat_id: ${{ secrets.TF_VAR_TELEGRAM_CHAT_ID }}
+          TF_VAR_alert_email: ${{ secrets.TF_VAR_ALERT_EMAIL }}

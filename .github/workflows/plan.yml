@@ -1,0 +1,92 @@
+name: Plan
+
+on:
+  pull_request:
+    branches: [master]
+
+permissions:
+  id-token: write       # required for OIDC credential exchange
+  contents: read
+  pull-requests: write  # to post the plan as a PR comment
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: eu-west-1
+
+      - uses: hashicorp/setup-terraform@v3
+
+      - name: terraform init
+        working-directory: terraform
+        run: terraform init -input=false
+
+      - name: Read current zip keys from state
+        # Use whatever is already deployed so the plan shows infra drift only,
+        # not a spurious Lambda code change.
+        working-directory: terraform
+        run: |
+          FETCH_KEY=$(terraform output -raw fetch_lambda_zip_key 2>/dev/null \
+                      || echo "lambda-zips/placeholder.zip")
+          NOTIFY_KEY=$(terraform output -raw notify_lambda_zip_key 2>/dev/null \
+                       || echo "lambda-zips/placeholder.zip")
+          echo "FETCH_KEY=$FETCH_KEY"   >> "$GITHUB_ENV"
+          echo "NOTIFY_KEY=$NOTIFY_KEY" >> "$GITHUB_ENV"
+        env:
+          TF_VAR_mongo_uri: ${{ secrets.TF_VAR_MONGO_URI }}
+          TF_VAR_telegram_token: ${{ secrets.TF_VAR_TELEGRAM_TOKEN }}
+          TF_VAR_telegram_chat_id: ${{ secrets.TF_VAR_TELEGRAM_CHAT_ID }}
+          TF_VAR_alert_email: ${{ secrets.TF_VAR_ALERT_EMAIL }}
+
+      - name: terraform plan
+        id: plan
+        working-directory: terraform
+        run: |
+          set +e
+          terraform plan -no-color -input=false \
+            -var "fetch_zip_key=$FETCH_KEY" \
+            -var "notify_zip_key=$NOTIFY_KEY" \
+            2>&1 | tee plan.txt
+          echo "exit_code=${PIPESTATUS[0]}" >> "$GITHUB_OUTPUT"
+          set -e
+        env:
+          TF_VAR_mongo_uri: ${{ secrets.TF_VAR_MONGO_URI }}
+          TF_VAR_telegram_token: ${{ secrets.TF_VAR_TELEGRAM_TOKEN }}
+          TF_VAR_telegram_chat_id: ${{ secrets.TF_VAR_TELEGRAM_CHAT_ID }}
+          TF_VAR_alert_email: ${{ secrets.TF_VAR_ALERT_EMAIL }}
+
+      - name: Post plan as PR comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const raw = fs.readFileSync('terraform/plan.txt', 'utf8');
+            // GitHub comment limit is 65 536 bytes; keep the tail (most relevant part)
+            const body = raw.length > 60000
+              ? '...(truncated)\n' + raw.slice(-60000)
+              : raw;
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo:  context.repo.repo,
+              issue_number: context.issue.number,
+              body: `## Terraform Plan\n\`\`\`\n${body}\n\`\`\``,
+            });
+
+      - name: Fail if plan errored
+        if: steps.plan.outputs.exit_code != '0'
+        run: exit 1

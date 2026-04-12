@@ -5,10 +5,6 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 5.0"
     }
-    null = {
-      source  = "hashicorp/null"
-      version = "~> 3.0"
-    }
   }
 }
 
@@ -22,6 +18,5 @@ locals {
     Project   = local.project
     ManagedBy = "terraform"
   }
-  fetch_zip_path  = "${path.module}/../dist/lambda/fetch.zip"
-  notify_zip_path = "${path.module}/../dist/lambda/notify.zip"
+  tfstate_bucket = "jji-notifier-tfstate"
 }
