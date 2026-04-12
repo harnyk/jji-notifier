@@ -76,15 +76,30 @@ app.post("/api/queries/preview", async (c) => {
   validatePostFilters(config.postFilters ?? []);
   const api = await new JjiApiClient().fetchOffers(config);
   const offers = applyPostFilters(api.data, config.postFilters ?? []);
-  const fetchedGuids = new Set(
-    await OfferModel.distinct("guid", { guid: { $in: offers.map((offer) => offer.guid) } }),
+  const fetchedOffers = await OfferModel.find(
+    { guid: { $in: offers.map((offer) => offer.guid) } },
+    { guid: 1, publishedAt: 1, seenAt: 1 },
+  ).lean();
+  const fetchedOffersByGuid = new Map(
+    fetchedOffers.map((offer) => [
+      offer.guid,
+      {
+        publishedAt: offer.publishedAt instanceof Date ? offer.publishedAt.toISOString() : offer.publishedAt,
+        seenAt: offer.seenAt instanceof Date ? offer.seenAt.toISOString() : offer.seenAt,
+      },
+    ]),
   );
 
   return c.json({
-    offers: offers.map((offer) => ({
-      ...offer,
-      alreadyFetched: fetchedGuids.has(offer.guid),
-    })),
+    offers: offers.map((offer) => {
+      const fetchedOffer = fetchedOffersByGuid.get(offer.guid);
+      return {
+        ...offer,
+        alreadyFetched: fetchedOffer != null,
+        dbPublishedAt: fetchedOffer?.publishedAt,
+        dbSeenAt: fetchedOffer?.seenAt,
+      };
+    }),
     total: offers.length,
   });
 });

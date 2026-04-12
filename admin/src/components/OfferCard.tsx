@@ -9,17 +9,27 @@ function formatSalary(offer: Offer): string {
   return `${range} ${et.currency.toUpperCase()}/${et.unit} (${et.gross ? "gross" : "net"})`;
 }
 
+function formatDate(value?: string): string {
+  if (!value) return "—";
+  return new Date(value).toLocaleDateString("pl-PL", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+}
+
+function isLaterDate(value: string, comparison?: string): boolean {
+  if (!comparison) return false;
+  return new Date(value).getTime() > new Date(comparison).getTime();
+}
+
 interface Props {
   offer: Offer;
 }
 
 export default function OfferCard({ offer }: Props) {
   const url = `https://justjoin.it/offers/${offer.slug}`;
-  const publishedAt = new Date(offer.publishedAt).toLocaleDateString("pl-PL", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
+  const isRefreshed = isLaterDate(offer.publishedAt, offer.dbPublishedAt);
 
   return (
     <div className="offer-card">
@@ -52,7 +62,23 @@ export default function OfferCard({ offer }: Props) {
           {offer.requiredSkills.map((s) => s.name).join(", ")}
         </div>
       )}
-      <div className="offer-date muted">{publishedAt}</div>
+      <div className="offer-dates muted">
+        <div>
+          <span>JJI published at:</span>
+          <span>
+            <time dateTime={offer.publishedAt}>{formatDate(offer.publishedAt)}</time>
+            {isRefreshed && <span className="offer-date-refreshed-dot" title="refreshed" />}
+          </span>
+        </div>
+        <div>
+          <span>DB published at:</span>
+          {offer.dbPublishedAt ? <time dateTime={offer.dbPublishedAt}>{formatDate(offer.dbPublishedAt)}</time> : <span>—</span>}
+        </div>
+        <div>
+          <span>DB seen at:</span>
+          {offer.dbSeenAt ? <time dateTime={offer.dbSeenAt}>{formatDate(offer.dbSeenAt)}</time> : <span>—</span>}
+        </div>
+      </div>
     </div>
   );
 }

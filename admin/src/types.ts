@@ -55,4 +55,6 @@ export interface Offer {
   languages: Array<{ code: string; level: string }>;
   category: { key: string };
   alreadyFetched?: boolean;
+  dbPublishedAt?: string;
+  dbSeenAt?: string;
 }
