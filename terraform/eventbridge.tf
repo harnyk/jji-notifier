@@ -27,7 +27,7 @@ resource "aws_scheduler_schedule" "notify" {
     mode = "OFF"
   }
 
-  schedule_expression          = "cron(* 9-18 * * ? *)"
+  schedule_expression          = "cron(* 8-18 * * ? *)"
   schedule_expression_timezone = "Europe/Berlin"
 
   target {
