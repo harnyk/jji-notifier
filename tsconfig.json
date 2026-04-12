@@ -32,6 +32,9 @@
     // "noFallthroughCasesInSwitch": true,
     // "noPropertyAccessFromIndexSignature": true,
 
+    // Decorator support (required for Inversify)
+    "experimentalDecorators": true,
+
     // Recommended Options
     "strict": true,
     "jsx": "react-jsx",
