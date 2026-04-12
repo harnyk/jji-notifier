@@ -41,10 +41,10 @@ jobs:
         # not a spurious Lambda code change.
         working-directory: terraform
         run: |
-          FETCH_KEY=$(terraform output -raw fetch_lambda_zip_key 2>/dev/null \
-                      || echo "lambda-zips/placeholder.zip")
-          NOTIFY_KEY=$(terraform output -raw notify_lambda_zip_key 2>/dev/null \
-                       || echo "lambda-zips/placeholder.zip")
+          FETCH_KEY=$(terraform output -raw fetch_lambda_zip_key 2>/dev/null) || true
+          FETCH_KEY=${FETCH_KEY:-lambda-zips/placeholder.zip}
+          NOTIFY_KEY=$(terraform output -raw notify_lambda_zip_key 2>/dev/null) || true
+          NOTIFY_KEY=${NOTIFY_KEY:-lambda-zips/placeholder.zip}
           echo "FETCH_KEY=$FETCH_KEY"   >> "$GITHUB_ENV"
           echo "NOTIFY_KEY=$NOTIFY_KEY" >> "$GITHUB_ENV"
         env:
