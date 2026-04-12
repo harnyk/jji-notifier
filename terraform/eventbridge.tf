@@ -6,7 +6,7 @@ resource "aws_scheduler_schedule" "fetch" {
     mode = "OFF"
   }
 
-  schedule_expression          = "cron(0/15 9-18 * * ? *)"
+  schedule_expression          = "cron(0/15 8-18 * * ? *)"
   schedule_expression_timezone = "Europe/Berlin"
 
   target {
