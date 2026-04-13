@@ -67,7 +67,7 @@ export class FetchOffersUseCase {
         "upsert complete",
       );
 
-      newOffers.map((o) => parseOffer(o)).forEach(printOffer);
+      // newOffers.map((o) => parseOffer(o)).forEach(printOffer);
 
       totalFetched += api.data.length;
       totalNew += newOffers.length;
